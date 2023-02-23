@@ -1,0 +1,62 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+include: package:flutter_lints/flutter.yaml
+analyzer:
+  exclude:
+    - /**.g.dart
+    - lib/clone_lib/pitch_detection/algorithm/yin.dart
+
+linter:
+  # The lint rules applied to this project can be customized in the
+  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
+  # included above or to enable additional rules. A list of all available lints
+  # and their documentation is published at
+  # https://dart-lang.github.io/linter/lints/index.html.
+  #
+  # Instead of disabling a lint rule for the entire project in the
+  # section below, it can also be suppressed for a single line of code
+  # or a specific dart file by using the `// ignore: name_of_lint` and
+  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
+  # producing the lint.
+  # https://dart:dev/tools/linter-rules:
+  rules:
+    avoid_print: true # Uncomment to disable the `avoid_print` rule
+    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    file_names: true
+    camel_case_extensions: true
+    cancel_subscriptions: true
+    empty_statements: true
+    literal_only_boolean_expressions: true
+    unnecessary_statements: true
+    use_build_context_synchronously: true
+    avoid_catches_without_on_clauses: true
+    avoid_js_rounded_ints: true # E.g: BigInt value = BigInt.parse('9007199254740995');
+    avoid_multiple_declarations_per_line: true
+    avoid_positional_boolean_parameters: true
+    avoid_returning_this: true
+    cast_nullable_to_non_nullable: true
+    missing_whitespace_between_adjacent_strings: true
+    no_leading_underscores_for_library_prefixes: true
+    no_runtimeType_toString: true
+    noop_primitive_operations: true
+    only_throw_errors: true
+    parameter_assignments: true
+    prefer_asserts_in_initializer_lists: true
+    prefer_asserts_with_message: true
+    prefer_if_null_operators: true
+    sort_child_properties_last: true
+    type_annotate_public_apis: true
+    unnecessary_null_checks: true
+    use_colored_box: true
+    use_decorated_box: true
+    use_enums: true
+    require_trailing_commas: true
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options
