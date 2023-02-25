@@ -26,6 +26,8 @@
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>ICTU cần sử dụng FaceID của bạn để giúp bạn có thể đăng nhập nhanh hơn.</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
