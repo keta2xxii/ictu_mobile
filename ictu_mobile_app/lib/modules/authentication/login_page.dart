@@ -289,11 +289,20 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               child: Center(
-                child: Text(
-                  LocaleKeys.login_helpStr.tr(),
-                  style: $styles.text.styleInter.copyWith(
-                    color: Colors.black,
-                    fontSize: 16,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      AppRouter.webView,
+                      arguments: 'https://ictu.vn',
+                    );
+                  },
+                  child: Text(
+                    LocaleKeys.login_helpStr.tr(),
+                    style: $styles.text.styleInter.copyWith(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
