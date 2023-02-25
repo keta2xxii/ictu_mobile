@@ -1,0 +1,28 @@
+{
+  "common": {
+    "appName": "Base Source",
+    "companyName": "ICTU - ĐÀO TẠO TỪ XA"
+  },
+  "error": {
+    "title": "There is an issue",
+    "500": "We cannot connect to the server at this time, please try again later."
+  },
+  "success": {
+    "title": "That's done!"
+  },
+  "splash": {
+    "createdBy": "Developed By ICTU Software",
+    "website": "https://ictu.vn",
+    "learnOnline": "ĐÀO TẠO TỪ XA"
+  },
+  "login": {
+    "pleaseLoginStr": "Vui lòng đăng nhập để vào học...!",
+    "emailHint": "Mã sinh viên / ICTU Email",
+    "passwordHint": "Mật khẩu",
+    "forgotPassStr": "Quên mật khẩu?",
+    "loginStr": "ĐĂNG NHẬP",
+    "loginWithICTUEmail": "Đăng nhập bằng ICTU Email",
+    "helpStr": "Trợ giúp",
+    "requiredField": "{} không được bỏ trống"
+  }
+}
