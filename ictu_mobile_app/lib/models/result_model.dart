@@ -21,8 +21,10 @@ class BaseDecoder<T> {
         body = decoder!(result.data);
       } else {
         if (kDebugMode) {
-          log("BaseDecoder => ${T.toString()}",
-              name: "data or decorder is not exist");
+          log(
+            "BaseDecoder => ${T.toString()}",
+            name: "data or decorder is not exist",
+          );
         }
       }
     } on Exception catch (e) {
@@ -31,7 +33,7 @@ class BaseDecoder<T> {
     return body;
   }
 
-  bool get success => result.code == 1;
+  bool get success => result.code == 'success';
   String get devMessage => result.developerMessage ?? "";
   dynamic get message => result.message;
 }
@@ -40,7 +42,11 @@ class BaseDecoder<T> {
 class Result {
   dynamic data;
   final String? message;
-  final int code;
+  final dynamic code;
+  @JsonKey(name: 'access_token')
+  final String? accessToken;
+  @JsonKey(name: 'refresh_token')
+  final String? refreshToken;
   final String? developerMessage;
 
   Result({
@@ -48,7 +54,11 @@ class Result {
     required this.code,
     this.developerMessage,
     this.message,
+    this.accessToken,
+    this.refreshToken,
   });
+
+  bool get success => code == 'success';
 
   factory Result.fromJson(Map<String, dynamic> json) => _$ResultFromJson(json);
 
