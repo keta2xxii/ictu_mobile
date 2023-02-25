@@ -1,16 +1,21 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:ictu_mobile_app/app/app_enums.dart';
-import 'package:ictu_mobile_app/generated/locale_keys.g.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:ictu_mobile_app/app/app_controller.dart';
+import 'package:ictu_mobile_app/app/app_styles.dart';
+import 'package:ictu_mobile_app/custom_widgets/custom_loading_indicator.dart';
+import 'package:ictu_mobile_app/models/error_response.dart';
+import 'package:ictu_mobile_app/utils/helpers.dart';
 
-import '../models/error_response.dart';
-import '../utils/helpers.dart';
+import '../app/app_enums.dart';
+import '../app/app_routers.dart';
+import '../generated/locale_keys.g.dart';
+import '../models/result_model.dart';
 import 'base_future.dart';
 
 abstract class BaseSchedule extends ChangeNotifier {
@@ -18,55 +23,32 @@ abstract class BaseSchedule extends ChangeNotifier {
 
   late BuildContext context;
 
-  @protected
-  void showError(String message, {VoidCallback? onPress, String? title}) {
-    title ??= LocaleKeys.error_title.tr();
-    FocusScope.of(context).requestFocus(FocusNode());
+  void showError(String message) {
     showSnackBar(message, type: SnackBarType.error);
   }
 
-  @protected
-  void showSuccess(String message, {String? title, VoidCallback? onPress}) {
-    title ??= LocaleKeys.success_title.tr();
-    FocusScope.of(context).requestFocus(FocusNode());
-    //TODO.showSuccess
+  void showSuccess(String message) {
+    showSnackBar(message, type: SnackBarType.success);
   }
 
-  void showLoading() {
-    FocusScope.of(context).requestFocus(FocusNode());
-    FocusScope.of(context).requestFocus(FocusNode());
-    showDialog(
-      context: context,
-      builder: (context) => Material(
-        color: Colors.black26,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(10.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: const CircularProgressIndicator(),
-          ),
-        ),
-      ),
-      barrierDismissible: false,
-    );
+  void showLoading({Widget? indicator}) {
+    EasyLoading.show(indicator: indicator ?? const CustomLoadingIndicator());
   }
 
   void hideLoading() {
-    Navigator.of(context).pop();
+    EasyLoading.dismiss();
   }
 
   void openDialog(
     Widget child, {
     bool barrierDismissible = true,
+    VoidCallback? onBack,
   }) {
     showDialog(
       context: context,
       builder: (context) => child,
       barrierDismissible: barrierDismissible,
-    );
+    ).then((value) => onBack?.call());
   }
 
   void showSnackBar(String message, {SnackBarType type = SnackBarType.error}) {
@@ -101,13 +83,14 @@ abstract class BaseSchedule extends ChangeNotifier {
           const SizedBox(
             width: 20,
           ),
-          Text(
-            message,
-            style: TextStyle(
-              color: color,
-              fontFamily: 'iCielHelveticaNowText',
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
+          Flexible(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ),
         ],
@@ -117,32 +100,73 @@ abstract class BaseSchedule extends ChangeNotifier {
       duration: const Duration(seconds: 3),
     );
     if (!message.contains('Authentication Fail')) {
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      AppController.instance.rootScaffoldMessengerKey.currentState
+          ?.showSnackBar(snackBar);
     }
   }
 
-  void checkConnect(Object obj, {Function(ErrorResponse)? onError}) async {
+  @protected
+  void openBottomSheet({required Widget child, Color? bgColor}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: bgColor ?? $styles.colors.color33,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      builder: (context) => child,
+    );
+  }
+
+  void checkConnect(
+    Object obj,
+    Future future, {
+    Function(ErrorResponse)? onError,
+  }) async {
     try {
       final result = await InternetAddress.lookup('example.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        handleError(obj, onError: onError);
+        handleError(
+          obj,
+          future,
+          onError: onError,
+        );
       }
     } on SocketException catch (_) {
       log("The internet connection appears to be offline.");
     }
   }
 
-  void handleError(Object obj, {Function(ErrorResponse)? onError}) {
+  void handleError(
+    Object obj,
+    Future future, {
+    Function(ErrorResponse)? onError,
+  }) {
     switch (obj.runtimeType) {
       case DioError:
         final res = (obj as DioError).response;
         // final req = res?.realUri;
         if (res != null && res.data != null) {
-          Map<String, dynamic> data = jsonDecode(res.data.toString());
-          final errorRes = ErrorResponse.fromJson(data);
+          Result data = Result.fromJson(res.data);
+          final errorRes =
+              ErrorResponse(res.statusCode!, data.message!, data.message!);
           switch (errorRes.status) {
             case 500:
-              showError(LocaleKeys.error_500);
+              showError(LocaleKeys.error_500.tr());
+              break;
+            case 401:
+              showError(errorRes.message);
+              if (!res.realUri.path.contains('/login')) {
+                AppController.instance.clearSession();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRouter.login,
+                  (route) => false,
+                );
+              }
               break;
             default:
               onError != null ? onError(errorRes) : showError(errorRes.message);
@@ -166,13 +190,14 @@ abstract class BaseSchedule extends ChangeNotifier {
           "${DateTime.now()} - fetchData $T: $obj",
         );
         hideLoading();
-        checkConnect(obj, onError: onError);
+        checkConnect(obj, onError: onError, future);
       }),
     );
   }
 
+  @protected
   void showImagePicker(Function(File p1) onCompleted) {
-    showBottomSheet(
+    showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
         child: DecoratedBox(
@@ -181,13 +206,31 @@ abstract class BaseSchedule extends ChangeNotifier {
           ),
           child: Wrap(
             children: <Widget>[
-              const Text('Select photo'),
+              const Padding(
+                padding: EdgeInsets.only(
+                  left: 12,
+                  top: 12,
+                ),
+                child: Text(
+                  'Select photo',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               ListTile(
                 leading: const Icon(
                   Icons.photo_camera,
                   color: Colors.black,
                 ),
-                title: const Text('Capture from Camera'),
+                title: const Text(
+                  'Capture from Camera',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
                 onTap: () {
                   Helpers.imgFromCamera().then((value) => {onCompleted(value)});
                   Navigator.of(context).pop();
@@ -198,7 +241,13 @@ abstract class BaseSchedule extends ChangeNotifier {
                   Icons.photo_library,
                   color: Colors.black,
                 ),
-                title: const Text('Pick from library'),
+                title: const Text(
+                  'Pick from library',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
                 onTap: () {
                   Helpers.imgFromGallery()
                       .then((value) => {onCompleted(value)});
