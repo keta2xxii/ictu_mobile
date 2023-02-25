@@ -17,13 +17,15 @@ class DioProvider {
       myDio.options.headers = {
         "Accept": "application/json",
         "content-type": "application/json",
-        "X-API-TOKEN": token,
+        "X-APP-ID": '64c9a192-cc0e-4198-acb8-2188dbb472fa',
+        "Authorization": 'Bearer $token',
         "User-Agent": "${Platform.isAndroid ? "iOS" : "Android"}_$deviceId",
       };
     } else {
       myDio.options.headers = {
         "Accept": "application/json",
         "content-type": "application/json",
+        "X-APP-ID": '64c9a192-cc0e-4198-acb8-2188dbb472fa',
         "User-Agent": "${Platform.isAndroid ? "iOS" : "Android"}_$deviceId"
       };
     }
@@ -38,7 +40,9 @@ class DioProvider {
 class HttpLogInterceptor extends dio.InterceptorsWrapper {
   @override
   void onRequest(
-      dio.RequestOptions options, dio.RequestInterceptorHandler handler) {
+    dio.RequestOptions options,
+    dio.RequestInterceptorHandler handler,
+  ) {
     log("==================================================================================================================\n"
         "onRequest: ${options.uri}\n"
         "data=${options.data}\n"
@@ -50,7 +54,9 @@ class HttpLogInterceptor extends dio.InterceptorsWrapper {
 
   @override
   void onResponse(
-      dio.Response response, dio.ResponseInterceptorHandler handler) {
+    dio.Response response,
+    dio.ResponseInterceptorHandler handler,
+  ) {
     log("onResponse: url:${response.requestOptions.path} : ${response.data}\n"
         "==================================================================================================================");
     super.onResponse(response, handler);
